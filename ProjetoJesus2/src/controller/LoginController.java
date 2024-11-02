@@ -18,7 +18,7 @@ import view.MenuView;
  * @author digom
  */
 public class LoginController {
-    private LoginView view;
+    private final LoginView view;
 
     public LoginController(LoginView view) {
         this.view = view;
@@ -29,24 +29,16 @@ public class LoginController {
         String usuario = view.getjTextFieldUsuario().getText();
         String senha = view.getjPasswordFieldSenha().getText();
         
-        Usuario usuarioAutenticar = new Usuario(usuario, senha);
-        
         Connection conexao = new Conexao().getConnection();
         UsuarioDAO usuarioDao = new UsuarioDAO(conexao);
         
-        boolean existe = usuarioDao.existePorUsuarioESenha(usuarioAutenticar);
+        boolean existe = usuarioDao.login(usuario, senha);
         
         if(existe){
-        
-        
-        MenuView telaDeMenu = new MenuView();
-        telaDeMenu.setVisible(true);
-    }else{
+            MenuView telaDeMenu = new MenuView();
+            telaDeMenu.setVisible(true);
+        }else{
             JOptionPane.showMessageDialog(view, "Usuário ou senha invalidos");
-            
         }
-    
     }
-    
-
 }

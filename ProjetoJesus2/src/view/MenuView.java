@@ -5,14 +5,18 @@
 package view;
 
 import com.sun.jdi.connect.spi.Connection;
+import controller.MenuController;
 import dao.Conexao;
 import dao.UsuarioDAO;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import model.Usuario;
+import model.Produto;
 
 
 /**
@@ -20,12 +24,13 @@ import model.Usuario;
  * @author digom
  */
 public class MenuView extends javax.swing.JFrame {
-
-    /**
-     * Creates new form MenuView
-     */
-    public MenuView() {
+    
+    private final MenuController controller;
+    
+    public MenuView() throws SQLException {
         initComponents();
+        this.controller = new MenuController(this);
+        inicializaProdutos();
     }
 
     /**
@@ -69,9 +74,9 @@ public class MenuView extends javax.swing.JFrame {
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap(32, Short.MAX_VALUE)
+                .addContainerGap(37, Short.MAX_VALUE)
                 .addComponent(jLabel1)
-                .addGap(19, 19, 19))
+                .addGap(25, 25, 25))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -80,28 +85,40 @@ public class MenuView extends javax.swing.JFrame {
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 0, 230, 20));
+        getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 0, 230, 20));
 
         jtbmenu.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "Produto", "Quantidade", "Valor", "Marca"
+                "id", "Produto", "Quantidade", "Valor", "Marca"
             }
         ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
             }
         });
         jtbmenu.setRequestFocusEnabled(false);
+        jtbmenu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jtbmenuMouseClicked(evt);
+            }
+        });
         jScrollPane3.setViewportView(jtbmenu);
 
-        getContentPane().add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 40, -1, -1));
+        getContentPane().add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(32, 40, 550, -1));
 
         jTextFieldProduto.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -138,6 +155,11 @@ public class MenuView extends javax.swing.JFrame {
         jButtonAlterarProduto.setBackground(new java.awt.Color(255, 255, 51));
         jButtonAlterarProduto.setFont(new java.awt.Font("Segoe UI Black", 0, 14)); // NOI18N
         jButtonAlterarProduto.setText("Alterar");
+        jButtonAlterarProduto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAlterarProdutoActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -156,7 +178,7 @@ public class MenuView extends javax.swing.JFrame {
                     .addComponent(jLabel2)
                     .addComponent(jLabel6))
                 .addGap(0, 0, Short.MAX_VALUE))
-            .addComponent(jButtonAlterarProduto, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
+            .addComponent(jButtonAlterarProduto, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -185,7 +207,7 @@ public class MenuView extends javax.swing.JFrame {
                 .addContainerGap(56, Short.MAX_VALUE))
         );
 
-        getContentPane().add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 80, -1, 370));
+        getContentPane().add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(612, 80, 120, 370));
 
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/view/imagens/produtos.jpg"))); // NOI18N
         getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -211,34 +233,83 @@ public class MenuView extends javax.swing.JFrame {
     }//GEN-LAST:event_jTextFieldProdutoActionPerformed
 
     private void jButtonInsertProdutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonInsertProdutoActionPerformed
-    
+        
+       
         String produto = jTextFieldProduto.getText().trim();
         String quantidade = jTextFieldQuantidade.getText().trim();
         String marca = jTextFieldMarca.getText().trim();
         String valor = jTextFieldValor.getText().trim();
         
-        DefaultTableModel val = (DefaultTableModel) jtbmenu.getModel();
-        
-        val.addRow(new String[]{produto,quantidade,valor,marca});
-        
-            jTextFieldProduto.setText("");
-            jTextFieldQuantidade.setText("");
-            jTextFieldValor.setText("");
-            jTextFieldMarca.setText("");
-            jTextFieldProduto.requestFocus();
-        
-        
-        
-        
+        Produto novoProduto = this.controller.registrarProduto(produto, quantidade, valor, marca);
+
+        if (novoProduto != null) {
+            DefaultTableModel val = (DefaultTableModel) jtbmenu.getModel();
+            val.addRow(new String[]{String.valueOf(novoProduto.getId()), produto, quantidade, valor, marca});
+        } else {
+            JOptionPane.showMessageDialog(this, "Erro ao cadstrar produto!");
+        }
+
+        jTextFieldProduto.setText("");
+        jTextFieldQuantidade.setText("");
+        jTextFieldValor.setText("");
+        jTextFieldMarca.setText("");
+        jTextFieldProduto.requestFocus();   
     }//GEN-LAST:event_jButtonInsertProdutoActionPerformed
 
     private void jButtonExcluirProdutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExcluirProdutoActionPerformed
-
-        ((DefaultTableModel)jtbmenu.getModel()).removeRow(jtbmenu.getSelectedRow());;
+        int row = jtbmenu.getSelectedRow();
         
+        if (row != -1) {
+            int id = Integer.parseInt((String) jtbmenu.getValueAt(row, 0));
+            int success = this.controller.excluirProduto(id);
+            if (success > 0) {
+                ((DefaultTableModel)jtbmenu.getModel()).removeRow(jtbmenu.getSelectedRow()); 
+            } else {
+                JOptionPane.showMessageDialog(this, "Erro ao deletar produto!");
+            }
+        }
         
     }//GEN-LAST:event_jButtonExcluirProdutoActionPerformed
 
+    private void jButtonAlterarProdutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAlterarProdutoActionPerformed
+        int row = jtbmenu.getSelectedRow();
+        if (row != -1) {
+            int id = Integer.parseInt((String) jtbmenu.getValueAt(row, 0));
+            
+            String produto = jTextFieldProduto.getText().trim();
+            String quantidade = jTextFieldQuantidade.getText().trim();
+            String marca = jTextFieldMarca.getText().trim();
+            String valor = jTextFieldValor.getText().trim();
+            
+            if (produto == "" || quantidade == "" || marca == "" || valor == "") {
+                JOptionPane.showMessageDialog(this, "Erro ao atualizar o produto! Preencha as novas informações!");
+            } else {
+                Produto produtoAtualizado = this.controller.atualizarProduto(id, produto, quantidade, valor, marca);
+                
+                if (produtoAtualizado == null) {
+                    JOptionPane.showMessageDialog(this, "Erro ao atualizar o produto! Preencha as novas informações!");
+                } else {
+                    DefaultTableModel val = (DefaultTableModel) jtbmenu.getModel();
+
+                    val.removeRow(jtbmenu.getSelectedRow()); 
+                    val.addRow(new String[]{String.valueOf(produtoAtualizado.getId()), produtoAtualizado.produto, String.valueOf(produtoAtualizado.quantidade), String.valueOf(produtoAtualizado.valor), produtoAtualizado.marca});
+                }
+            }
+        }
+    }//GEN-LAST:event_jButtonAlterarProdutoActionPerformed
+
+    private void jtbmenuMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jtbmenuMouseClicked
+  
+    }//GEN-LAST:event_jtbmenuMouseClicked
+    
+    private void inicializaProdutos() {
+        ArrayList<Produto> produtos = this.controller.listarProdutos();
+        DefaultTableModel val = (DefaultTableModel) jtbmenu.getModel();
+        
+        for (Produto produto : produtos) {
+            val.addRow(new String[]{String.valueOf(produto.getId()), produto.getProduto(), String.valueOf(produto.getQuantidade()), String.valueOf(produto.getValor()), produto.getMarca()});
+        }
+    }
     /**
      * @param args the command line arguments
      */
@@ -269,7 +340,11 @@ public class MenuView extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MenuView().setVisible(true);
+                try {
+                    new MenuView().setVisible(true);
+                } catch (SQLException ex) {
+                    Logger.getLogger(MenuView.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
@@ -287,7 +362,6 @@ public class MenuView extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTextField jTextFieldMarca;
     private javax.swing.JTextField jTextFieldProduto;
